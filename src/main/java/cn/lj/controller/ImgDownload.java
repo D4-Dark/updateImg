@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import cn.lj.pojo.Entity;
 import cn.lj.pojo.request;
@@ -25,7 +26,7 @@ public class ImgDownload {
 	
 	@RequestMapping(value ="/updataImg", method = RequestMethod.POST)
 	@ResponseBody
-    public request updataImg(@PathVariable("file")MultipartFile image,HttpServletRequest request){
+    public request updataImg(HttpServletRequest request){
 		
     	 
 		Entity entity = new Entity();
@@ -35,11 +36,13 @@ public class ImgDownload {
 		entity.setDate(request.getParameter("date"));
 		entity.setType1(request.getParameter("type1"));
 		entity.setType2(request.getParameter("type2"));
-		
+		  MultipartHttpServletRequest req = (MultipartHttpServletRequest) request;
+          //对应前端的upload的name参数"file"
+          MultipartFile file = req.getFile("file");
 		
 		String returnMsg;
 		try {
-			returnMsg = imgUpload.ImgUpdate(image, entity);
+			returnMsg = imgUpload.ImgUpdate(file, entity);
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
 			return new request("上传失败",500,null);
