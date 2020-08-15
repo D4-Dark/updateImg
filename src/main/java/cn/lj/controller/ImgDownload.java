@@ -36,9 +36,10 @@ public class ImgDownload {
 		entity.setDate(request.getParameter("date"));
 		entity.setType1(request.getParameter("type1"));
 		entity.setType2(request.getParameter("type2"));
-		  MultipartHttpServletRequest req = (MultipartHttpServletRequest) request;
-          //对应前端的upload的name参数"file"
-          MultipartFile file = req.getFile("file");
+		
+		MultipartHttpServletRequest req = (MultipartHttpServletRequest) request;
+        //对应前端的upload的name参数"file"
+        MultipartFile file = req.getFile("file");
 		
 		String returnMsg;
 		try {
