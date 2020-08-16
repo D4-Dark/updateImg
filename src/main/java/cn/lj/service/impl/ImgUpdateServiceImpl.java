@@ -75,9 +75,9 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 	private String getPath(String type1,String type2,String date,String name) {
 		String filePath = null;
 		if(date==""||date==null) {
-			filePath = "D://WorkImage//"+type1+"//"+type2+"//"+name;
+			filePath = "D://WorkImage//"+name+"//"+type1+"//"+type2;
 		}else {
-			filePath = "D://WorkImage//"+type1+"//"+type2+"//"+date.replace(":","_")+"//"+name;
+			filePath = "D://WorkImage//"+name+"//"+date.replace(":","_")+"//"+type1+"//"+type2;
 		}
 		return filePath;
 	}
