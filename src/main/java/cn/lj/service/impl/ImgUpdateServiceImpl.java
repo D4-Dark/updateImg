@@ -30,6 +30,12 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		/*
 		 * 提问: 用户如果传了多个名称要怎么办?  比如matId 和 carId 都有值 ?
 		 * */
+		String name = file.getContentType();
+		//截取后缀
+		
+		String Endname = name.substring(5+1, name.length());
+		
+		//System.out.println(Endname);
 		
 		/**
 		 * 判断: 哪个有值用哪个id
@@ -37,13 +43,13 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		 * 
 		 * */
 		if(!(entity.getCarId().equals(""))) {
-			fileName = entity.getCarId()+entity.getType1()+entity.getType2()+".jpg";
+			fileName = entity.getCarId()+entity.getType1()+entity.getType2()+"."+Endname;
 			filePath=getPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getCarId());
 		}else if(!(entity.getMatId().equals(""))) {
-			fileName = entity.getMatId()+entity.getType1()+entity.getType2()+".jpg";
+			fileName = entity.getMatId()+entity.getType1()+entity.getType2()+"."+Endname;
 			filePath=getPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getMatId());
 		}else if(!(entity.getShipId().equals(""))) {
-			fileName = entity.getShipId()+entity.getType1()+entity.getType2()+".jpg";
+			fileName = entity.getShipId()+entity.getType1()+entity.getType2()+"."+Endname;
 			filePath=getPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getShipId());
 		}
 		
