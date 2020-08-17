@@ -55,4 +55,25 @@ public class ImgDownload {
     	
     	return new request("上传成功",200,null);
     }
+	@RequestMapping(value ="/updataImgSFTP", method = RequestMethod.POST)
+	@ResponseBody
+	public request updataImgSFTP(@RequestParam("file")MultipartFile img,HttpServletRequest request){
+		
+		Entity entity = new Entity();
+		entity.setCarId(request.getParameter("carId"));
+		entity.setShipId(request.getParameter("shipId"));
+		entity.setMatId(request.getParameter("matId"));
+		entity.setDate(request.getParameter("date"));
+		entity.setType1(request.getParameter("type1"));
+		entity.setType2(request.getParameter("type2"));
+		
+		try {
+			imgUpload.SFTPUpload(img,entity);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return new request("上传成功",200,null);
+	}
 }

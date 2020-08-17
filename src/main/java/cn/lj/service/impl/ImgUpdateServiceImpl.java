@@ -1,9 +1,23 @@
 package cn.lj.service.impl;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Properties;
+import java.util.logging.Logger;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 
 import cn.lj.pojo.Entity;
 import cn.lj.service.ImgUpdateService;
@@ -11,6 +25,10 @@ import cn.lj.untils.Assert;
 
 @Service
 public class ImgUpdateServiceImpl implements ImgUpdateService{
+	
+	
+	private static final org.slf4j.Logger log = LoggerFactory.getLogger(ImgUpdateServiceImpl.class);
+
 
 	@Override
 	public String ImgUpdate(MultipartFile file,Entity entity) throws IllegalStateException, IOException {
@@ -67,6 +85,7 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		/**
 		 * 返回保存路径
 		 */
+		log.info("保存成功");
 		return filePath+"//"+fileName;
 	}
 
@@ -87,5 +106,139 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		}
 		return filePath;
 	}
+	
+	/*开启连接*/
+	public ChannelSftp connect(String host, int port, String username,
+			String password) {
+		ChannelSftp sftp = null;
+		try {
+			JSch jsch = new JSch();
+			jsch.getSession(username, host, port);
+			Session sshSession = jsch.getSession(username, host, port);
+			sshSession.setPassword(password);
+			Properties sshConfig = new Properties();
+			sshConfig.put("StrictHostKeyChecking", "no");
+			sshSession.setConfig(sshConfig);
+			sshSession.connect();
+			Channel channel = sshSession.openChannel("sftp");
+			channel.connect();
+			sftp = (ChannelSftp) channel;
+		} catch (Exception e) {
+ 
+		}
+		return sftp;
+	}
+
+	/**
+	 *  上传方法
+	 * @param directory
+	 * @param uploadFile
+	 * @param sftp
+	 */
+	public void upload(String fileName, File file, ChannelSftp sftp) {
+		try {
+			sftp.cd("/root/dev/usr/img");  //控制文件保存路径
+			sftp.put(new FileInputStream(file), file.getName());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+
+	 
+    /**
+     * MultipartFile 转 File
+     *
+     * @param file
+     * @throws Exception
+     */
+    public static File multipartFileToFile(MultipartFile file) throws Exception {
+ 
+        File toFile = null;
+        if (file.equals("") || file.getSize() <= 0) {
+            file = null;
+        } else {
+            InputStream ins = null;
+            ins = file.getInputStream();
+            toFile = new File(file.getOriginalFilename());
+            inputStreamToFile(ins, toFile);
+            ins.close();
+        }
+        return toFile;
+    }
+    
+    //获取流文件
+    private static void inputStreamToFile(InputStream ins, File file) {
+        try {
+            OutputStream os = new FileOutputStream(file);
+            int bytesRead = 0;
+            byte[] buffer = new byte[8192];
+            while ((bytesRead = ins.read(buffer, 0, 8192)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
+            os.close();
+            ins.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+ 
+    /**
+     * 删除本地临时文件
+     * @param file
+     */
+    public static void delteTempFile(File file) {
+    if (file != null) {
+        File del = new File(file.toURI());
+        del.delete();
+    }
+}
+
+	@Override
+	public void SFTPUpload(MultipartFile img, Entity entity) throws Exception {
+		/*
+		 * 解析文件地址
+		 * */
+		Assert.isNull(entity,"数据发送失败");
+		Assert.isEmpty(entity.getType1(), "目录1不能为空,请选择目录");
+		Assert.isEmpty(entity.getType2(), "目录2不能为空,请选择目录");
+		Assert.isDefault("选择类型", entity.getType1(), "请选择目录1");
+		Assert.isDefault("选择类型", entity.getType2(), "请选择目录2");
+		
+		String fileName = null;
+		
+		String name = img.getContentType();
+		//截取后缀
+		
+		String Endname = name.substring(5+1, name.length());
+		
+		//System.out.println(Endname);
+		
+		/**
+		 * 判断: 哪个有值用哪个id
+		 * 设定文件名称和文件夹名称
+		 * 
+		 * */
+		if(!(entity.getCarId().equals(""))) {
+			fileName = entity.getCarId()+entity.getType1()+entity.getType2()+"."+Endname;
+		}else if(!(entity.getMatId().equals(""))) {
+			fileName = entity.getMatId()+entity.getType1()+entity.getType2()+"."+Endname;
+		}else if(!(entity.getShipId().equals(""))) {
+			fileName = entity.getShipId()+entity.getType1()+entity.getType2()+"."+Endname;
+		}
+		
+		Assert.isNull(img,"图片接受失败");
+		File multipartFileToFile = multipartFileToFile(img);
+		/**
+		 *  IP地址 端口号 用户名 密码
+		 */
+		upload(fileName,multipartFileToFile,connect("ip地址",8080,"用户名",
+				"密码"));
+		log.info("上传成功");
+		
+	}
+
+
+
 	
 }
