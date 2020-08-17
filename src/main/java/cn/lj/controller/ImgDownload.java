@@ -24,7 +24,12 @@ public class ImgDownload {
 
 	@Autowired
 	ImgUpdateService imgUpload;
-	
+	/**
+	 * 传到本地方法
+	 * @param img
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value ="/updataImg", method = RequestMethod.POST)
 	@ResponseBody
     public request updataImg(@RequestParam("file")MultipartFile img,HttpServletRequest request){
@@ -55,6 +60,13 @@ public class ImgDownload {
     	
     	return new request("上传成功",200,null);
     }
+	
+	/**
+	 * 传到服务器方法
+	 * @param img
+	 * @param request
+	 * @return
+	 */
 	@RequestMapping(value ="/updataImgSFTP", method = RequestMethod.POST)
 	@ResponseBody
 	public request updataImgSFTP(@RequestParam("file")MultipartFile img,HttpServletRequest request){
