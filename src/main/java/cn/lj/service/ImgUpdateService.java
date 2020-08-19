@@ -25,5 +25,7 @@ public interface ImgUpdateService {
 	 * @param entity
 	 */
 	public void SFTPUpload(MultipartFile img, Entity entity) throws Exception ; 
+
+	public void FTPUpload(MultipartFile img,Entity entity) throws Exception;
 	
 }

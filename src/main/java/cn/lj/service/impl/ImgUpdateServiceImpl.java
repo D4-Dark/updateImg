@@ -10,6 +10,14 @@ import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
+
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPClientConfig;
+import org.apache.commons.net.ftp.FTPReply;
+ 
+
+
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,13 +69,13 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		 * 
 		 * */
 		if(!(entity.getCarId().equals(""))) {
-			fileName = entity.getCarId()+entity.getType1()+entity.getType2()+"."+Endname;
+			fileName = entity.getCarId()+"."+Endname;
 			filePath=getPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getCarId());
 		}else if(!(entity.getMatId().equals(""))) {
-			fileName = entity.getMatId()+entity.getType1()+entity.getType2()+"."+Endname;
+			fileName = entity.getMatId()+"."+Endname;
 			filePath=getPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getMatId());
 		}else if(!(entity.getShipId().equals(""))) {
-			fileName = entity.getShipId()+entity.getType1()+entity.getType2()+"."+Endname;
+			fileName = entity.getShipId()+"."+Endname;
 			filePath=getPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getShipId());
 		}
 		
@@ -106,7 +114,25 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		}
 		return filePath;
 	}
-	
+	/**
+	 * ftp设定文件夹名称
+	 * @param type1 目录1
+	 * @param type2 目录2
+	 * @param date 日期
+	 * @param name id
+	 * @return
+	 */
+	private String getFtpPath(String type1,String type2,String date,String name) {
+		String filePath = null;
+		if(date==""||date==null) {
+//			filePath = "/"+name+"/"+type1+"/"+type2;
+			filePath = "/WorkImage/"+name+"/"+type1+"/"+type2;
+		}else {
+//			filePath = "/"+name+"/"+date.replace(":","_")+"/"+type1+"/"+type2;
+			filePath = "/WorkImage/"+name+"/"+date.replace(":","_")+type1+"/"+type2;
+		}
+		return filePath;
+	}
 	/*开启连接*/
 	public ChannelSftp connect(String host, int port, String username,
 			String password) {
@@ -137,7 +163,7 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 	 */
 	public void upload(String fileName, File file, ChannelSftp sftp) {
 		try {
-			sftp.cd("/root/dev/usr/img");  //控制文件保存路径
+			sftp.cd("D:\\123");  //控制文件保存路径
 			sftp.put(new FileInputStream(file), file.getName());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -220,11 +246,11 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		 * 
 		 * */
 		if(!(entity.getCarId().equals(""))) {
-			fileName = entity.getCarId()+entity.getType1()+entity.getType2()+"."+Endname;
+			fileName = entity.getCarId()+"."+Endname;
 		}else if(!(entity.getMatId().equals(""))) {
-			fileName = entity.getMatId()+entity.getType1()+entity.getType2()+"."+Endname;
+			fileName = entity.getMatId()+"."+Endname;
 		}else if(!(entity.getShipId().equals(""))) {
-			fileName = entity.getShipId()+entity.getType1()+entity.getType2()+"."+Endname;
+			fileName = entity.getShipId()+"."+Endname;
 		}
 		
 		Assert.isNull(img,"图片接受失败");
@@ -232,13 +258,106 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		/**
 		 *  IP地址 端口号 用户名 密码
 		 */
-		upload(fileName,multipartFileToFile,connect("ip地址",8080,"用户名",
-				"密码"));
+		upload(fileName,multipartFileToFile,connect("10.88.252.231",3380,"Administrator",
+				"***123abc"));
 		log.info("上传成功");
 		
 	}
-
-
+	@Override
+	public void FTPUpload(MultipartFile img, Entity entity) throws Exception {
+		String fileName = null;
+		String filePath = null;
+		String name = img.getContentType();
+		//截取后缀
+		String Endname = name.substring(5+1, name.length());
+//		System.out.println(Endname);
+		/**
+		 * 判断: 哪个有值用哪个id
+		 * 设定文件名称和文件夹名称
+		 * 
+		 * */
+		if(!(entity.getCarId().equals(""))) {
+			fileName = entity.getCarId()+"."+Endname;
+			filePath=getFtpPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getCarId());
+		}else if(!(entity.getMatId().equals(""))) {
+			fileName = entity.getMatId()+"."+Endname;
+			filePath=getFtpPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getMatId());
+		}else if(!(entity.getShipId().equals(""))) {
+			fileName = entity.getShipId()+"."+Endname;
+			filePath=getFtpPath(entity.getType1(),entity.getType2(),entity.getDate(),entity.getShipId());
+		}
+		
+		File multipartFileToFile = multipartFileToFile(img);
+		
+		FTPClient ftpClient = new FTPClient();
+		ftpClient.setControlEncoding("utf-8");
+		ftpClient.setConnectTimeout(10*1000);
+        FileInputStream fis = null;
+        FTPClientConfig conf = new FTPClientConfig(FTPClientConfig.SYST_NT);
+        conf.setServerLanguageCode("zh");  
+        try {
+        	
+            ftpClient.connect("10.88.252.231");
+            ftpClient.login("administrator", "***123abc");
+            
+            int reply = ftpClient.getReplyCode();  
+            
+            // 以2开头的返回值就会为真  
+           
+            if (!FTPReply.isPositiveCompletion(reply)) {  
+           
+             ftpClient.disconnect();  
+           
+             System.out.println("连接服务器失败");  
+           
+                 return;  
+           
+            }  
+            System.out.println("登陆服务器成功"); 
+//            File srcFile = new File("D:\\bg.jpg");
+            fis = new FileInputStream(multipartFileToFile);
+            ftpClient.setFileType(ftpClient.BINARY_FILE_TYPE);
+            ftpClient.sendCommand("OPTS UTF8", "ON");
+//            ftpClient.makeDirectory(new String(filePath.getBytes("GBK"),"iso-8859-1"));
+//            name1=new String(name1.getBytes("GBK"),"iso-8859-1");
+            if (!ftpClient.changeWorkingDirectory(filePath)) {
+                //如果目录不存在创建目录
+                String[] dirs = filePath.split("/");
+                String tempPath ="";
+                for (String dir : dirs) {
+                    if (null == dir || "".equals(dir)) continue;
+                    tempPath += "/" + dir;
+                    if (!ftpClient.changeWorkingDirectory(tempPath)) {
+                        if (!ftpClient.makeDirectory(tempPath)) {
+                            return ;
+                        } else {
+                        	ftpClient.changeWorkingDirectory(tempPath);
+                        }
+                    }
+                }
+            }
+            
+            ftpClient.storeFile(fileName, fis);
+           
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException("FTP客户端出错！", e);
+        } finally {
+            IOUtils.closeQuietly(fis);
+        	try {
+				fis.close();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+            try {
+                ftpClient.disconnect();
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException("关闭FTP连接发生异常！", e);
+            }
+        } 
+		
+	}	
 
 	
 }
