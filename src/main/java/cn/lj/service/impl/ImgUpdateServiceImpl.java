@@ -290,7 +290,7 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
 		File multipartFileToFile = multipartFileToFile(img);
 		
 		FTPClient ftpClient = new FTPClient();
-		ftpClient.setControlEncoding("utf-8");
+		ftpClient.setControlEncoding("GBK");
 		ftpClient.setConnectTimeout(10*1000);
         FileInputStream fis = null;
         FTPClientConfig conf = new FTPClientConfig(FTPClientConfig.SYST_NT);
@@ -314,11 +314,10 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
            
             }  
             System.out.println("登陆服务器成功"); 
-//            File srcFile = new File("D:\\bg.jpg");
             fis = new FileInputStream(multipartFileToFile);
             ftpClient.setFileType(ftpClient.BINARY_FILE_TYPE);
-            ftpClient.sendCommand("OPTS UTF8", "ON");
-//            ftpClient.makeDirectory(new String(filePath.getBytes("GBK"),"iso-8859-1"));
+//            ftpClient.sendCommand("OPTS UTF8", "ON");
+//            ftpClient.makeDirectory();
 //            name1=new String(name1.getBytes("GBK"),"iso-8859-1");
             if (!ftpClient.changeWorkingDirectory(filePath)) {
                 //如果目录不存在创建目录
@@ -336,7 +335,6 @@ public class ImgUpdateServiceImpl implements ImgUpdateService{
                     }
                 }
             }
-            
             ftpClient.storeFile(fileName, fis);
            
         } catch (IOException e) {
